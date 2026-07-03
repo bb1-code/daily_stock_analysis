@@ -4,6 +4,8 @@
 *.env
 *.env.local
 .env.*.local
+# 配置模板需要入库（.env.* 会误伤它）
+!.env.example
 
 # 测试文件（可能包含敏感配置）
 # 仅忽略仓库根目录下的临时 test_*.py 脚本；tests/ 目录下的单元测试需要纳入版本控制。
