@@ -54,15 +54,17 @@ T 日盘前挂计划单，T+1 日盘前用 T 日实际 K 线结算：
 
 模拟盘账户复用组合账本（`PortfolioService`），在 Web 组合页面可直接查看持仓与盈亏；计划单与净值历史保存在 `data/bull_swing_state.json`。
 
-## TradingAgents-CN 深度复核（可选）
+## TradingAgents-CN 深度复核（默认开启，自动降级）
 
-配置后，候选股会先经 [TradingAgents-CN](https://github.com/hsliuping/TradingAgents-CN) 多智能体（市场/基本面/新闻/多空辩论）复核，复核意见并入报告；复核结论为"卖出"的候选会被剔除出买入计划：
+候选股会先经 [TradingAgents-CN](https://github.com/hsliuping/TradingAgents-CN) 多智能体（市场/基本面/新闻/多空辩论）复核，复核意见并入报告；复核结论为"卖出"的候选会被剔除出买入计划。
 
-```env
-BULL_SWING_DEEP_REVIEW_CMD=python /path/to/TradingAgents-CN/scripts/candidate_deep_review.py
-```
+`BULL_SWING_DEEP_REVIEW_CMD` 的解析规则：
 
-契约：命令会被追加 `--input <候选JSON> --output <决策JSON>` 参数执行；输出格式为 `{"decisions": [{"symbol", "action", "confidence", "risk_score", "target_price", "reasoning"}]}`。命令缺失、失败或超时（`BULL_SWING_DEEP_REVIEW_TIMEOUT`，默认 1800 秒）只会跳过复核，不阻断计划生成。TradingAgents-CN 侧的运行环境与 LLM 配置见其仓库 `docs/`。
+- **留空（默认）**：自动探测仓内引擎脚本 `<主仓根>/scripts/candidate_deep_review.py`。当本项目作为 TradingAgents-CN 主仓的 `daily_stock_analysis/` 子目录部署（monorepo 布局）时默认启用；独立部署探测不到脚本时自动跳过，与旧行为一致。
+- **`off` / `none` / `disabled`**：显式关闭复核。
+- **其他值**：作为外部命令执行，例如 `python /path/to/TradingAgents-CN/scripts/candidate_deep_review.py`。
+
+契约：命令会被追加 `--input <候选JSON> --output <决策JSON>` 参数执行；输出格式为 `{"decisions": [{"symbol", "action", "confidence", "risk_score", "target_price", "reasoning"}]}`。引擎依赖缺失（如未装 langgraph）、LLM 未配置、命令失败或超时（`BULL_SWING_DEEP_REVIEW_TIMEOUT`，默认 1800 秒）只会跳过复核意见，不阻断计划生成。引擎侧的运行环境与 LLM 配置见主仓 `docs/`。
 
 ## 配置项
 
@@ -76,7 +78,7 @@ BULL_SWING_DEEP_REVIEW_CMD=python /path/to/TradingAgents-CN/scripts/candidate_de
 | `BULL_SWING_RISK_PER_TRADE_PCT` | 2.0 | 单笔风险占权益比例（%） |
 | `BULL_SWING_MAX_CANDIDATES` | 6 | 每日买入计划最多候选数 |
 | `BULL_SWING_SCREEN_POOL_SIZE` | 40 | 候选池扫描规模 |
-| `BULL_SWING_DEEP_REVIEW_CMD` | 空 | TradingAgents-CN 复核命令，留空跳过 |
+| `BULL_SWING_DEEP_REVIEW_CMD` | 空 | 复核命令：空=自动探测仓内引擎，off=关闭，其他=外部命令 |
 | `BULL_SWING_DEEP_REVIEW_TIMEOUT` | 1800 | 复核超时（秒） |
 
 ## 代码结构

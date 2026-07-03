@@ -1002,7 +1002,8 @@ class Config:
     bull_swing_risk_per_trade_pct: float = 2.0
     bull_swing_max_candidates: int = 6
     bull_swing_screen_pool_size: int = 40
-    # 可选：TradingAgents-CN 深度复核命令，留空跳过复核
+    # TradingAgents-CN 深度复核命令：留空自动探测仓内引擎（monorepo 布局），
+    # off/none/disabled 显式关闭，其他值作为外部命令执行
     bull_swing_deep_review_cmd: str = ""
     bull_swing_deep_review_timeout: int = 1800
 

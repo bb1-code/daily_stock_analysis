@@ -22,7 +22,7 @@ from src.trading.candidate_screener import (
     gather_candidate_codes,
     screen_candidates,
 )
-from src.trading.deep_review import run_deep_review
+from src.trading.deep_review import resolve_deep_review_command, run_deep_review
 from src.trading.market_regime import MarketRegimeResult, assess_market_regime
 from src.trading.paper_broker import PaperBroker, PendingOrder, SettleReport, new_order_id
 from src.trading.signal_engine import (
@@ -160,11 +160,12 @@ def run_premarket_plan(
             exclude_codes=list(held_symbols),
         )
 
-        # 可选：TradingAgents-CN 多智能体深度复核
+        # TradingAgents-CN 多智能体深度复核（默认开启，缺引擎/失败自动降级）
+        review_command = resolve_deep_review_command(config.bull_swing_deep_review_cmd)
         reviews = run_deep_review(
             candidates,
             plan_date,
-            command=config.bull_swing_deep_review_cmd,
+            command=review_command,
             work_dir=_resolve_state_path(config).parent,
             timeout_seconds=int(config.bull_swing_deep_review_timeout),
         )

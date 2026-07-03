@@ -16,7 +16,11 @@ from src.trading.candidate_screener import (
     gather_candidate_codes,
     score_candidate_frame,
 )
-from src.trading.deep_review import parse_review_output
+from src.trading.deep_review import (
+    parse_review_output,
+    resolve_deep_review_command,
+    run_deep_review,
+)
 from src.trading.market_regime import evaluate_market_regime
 from src.trading.paper_broker import PaperBroker, PendingOrder, new_order_id
 from src.trading.premarket_plan import render_plan_report
@@ -473,6 +477,33 @@ class TestDeepReview:
 
     def test_parse_missing_file(self, tmp_path):
         assert parse_review_output(tmp_path / "missing.json") == {}
+
+    def test_resolve_explicit_command(self):
+        argv = resolve_deep_review_command("python /opt/engine/review.py --max 5")
+        assert argv == ["python", "/opt/engine/review.py", "--max", "5"]
+
+    def test_resolve_disable_sentinels(self):
+        for value in ("off", "OFF", "none", "disabled", "false", "0"):
+            assert resolve_deep_review_command(value) is None
+
+    def test_resolve_auto_detects_in_repo_engine(self, tmp_path):
+        script = tmp_path / "candidate_deep_review.py"
+        script.write_text("# engine stub", encoding="utf-8")
+        argv = resolve_deep_review_command("", engine_script=script)
+        assert argv is not None
+        assert argv[-1] == str(script)
+
+    def test_resolve_auto_skips_when_engine_missing(self, tmp_path):
+        argv = resolve_deep_review_command("", engine_script=tmp_path / "missing.py")
+        assert argv is None
+
+    def test_run_deep_review_skips_without_command(self, tmp_path):
+        candidate = Candidate(
+            code="600519", name="贵州茅台", source="自选股", close=1700.0,
+            ma5=1690.0, ma10=1670.0, ma20=1650.0, volume_ratio=1.2,
+            bias_ma5_pct=0.6, gain_20d_pct=8.0,
+        )
+        assert run_deep_review([candidate], date.today(), command=None, work_dir=tmp_path) == {}
 
 
 # ------------------------------------------------------------------- report
