@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- 新条目格式：- [类型] 描述（类型取值：新功能/改进/修复/文档/测试/chore）-->
 <!-- 每条独立一行追加到本段末尾，无需分类标题，合并时冲突最小 -->
+- [新功能] 新增 A 股牛市短线波段交易系统（`python main.py --premarket-plan`）：市场状态判定、候选筛选、买卖计划、模拟盘结算与盘前计划报告推送，支持可选 TradingAgents-CN 多智能体深度复核（详见 docs/bull-swing-trading.md）
 
 ## [3.24.1] - 2026-06-28
 

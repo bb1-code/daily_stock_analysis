@@ -270,6 +270,7 @@ def parse_arguments() -> argparse.Namespace:
   python main.py --single-notify    # 启用单股推送模式（每分析完一只立即推送）
   python main.py --schedule         # 启用定时任务模式
   python main.py --market-review    # 仅运行大盘复盘
+  python main.py --premarket-plan   # 生成A股牛市短线波段盘前交易计划
         '''
     )
 
@@ -332,6 +333,12 @@ def parse_arguments() -> argparse.Namespace:
         '--market-review',
         action='store_true',
         help='仅运行大盘复盘分析'
+    )
+
+    parser.add_argument(
+        '--premarket-plan',
+        action='store_true',
+        help='生成A股牛市短线波段盘前交易计划（含模拟盘结算与持仓管理）'
     )
 
     parser.add_argument(
@@ -1395,6 +1402,29 @@ def main() -> int:
             logger.info(
                 f"回测完成: processed={stats.get('processed')} saved={stats.get('saved')} "
                 f"completed={stats.get('completed')} insufficient={stats.get('insufficient')} errors={stats.get('errors')}"
+            )
+            return 0
+
+        # 模式0.5: 牛市短线波段盘前计划
+        if getattr(args, 'premarket_plan', False):
+            # A股交易日检查（与 --market-review 一致，可用 --force-run 跳过）
+            if not getattr(args, 'force_run', False) and getattr(config, 'trading_day_check_enabled', True):
+                from src.core.trading_calendar import get_open_markets_today
+                if 'cn' not in get_open_markets_today():
+                    logger.info("今日 A 股非交易日，跳过盘前计划。可使用 --force-run 强制执行。")
+                    return 0
+
+            logger.info("模式: 牛市短线波段盘前计划")
+            from src.trading import run_premarket_plan
+
+            plan_result = run_premarket_plan(
+                config,
+                send_notification=not args.no_notify,
+            )
+            logger.info(
+                "盘前计划完成: 报告=%s 推送=%s",
+                plan_result.report_path or "(未保存)",
+                "成功" if plan_result.notified else "跳过/失败",
             )
             return 0
 

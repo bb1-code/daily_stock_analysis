@@ -994,7 +994,18 @@ class Config:
     backtest_min_age_days: int = 14
     backtest_engine_version: str = "v1"
     backtest_neutral_band_pct: float = 2.0
-    
+
+    # === 牛市短线波段交易系统（--premarket-plan）===
+    bull_swing_account_name: str = "牛市短线模拟盘"
+    bull_swing_initial_capital: float = 1_000_000.0
+    bull_swing_max_positions: int = 5
+    bull_swing_risk_per_trade_pct: float = 2.0
+    bull_swing_max_candidates: int = 6
+    bull_swing_screen_pool_size: int = 40
+    # 可选：TradingAgents-CN 深度复核命令，留空跳过复核
+    bull_swing_deep_review_cmd: str = ""
+    bull_swing_deep_review_timeout: int = 1800
+
     # === 日志配置 ===
     log_dir: str = "./logs"  # 日志文件目录
     log_level: str = "INFO"  # 日志级别
@@ -1907,6 +1918,34 @@ class Config:
                 2.0,
                 field_name='BACKTEST_NEUTRAL_BAND_PCT',
                 minimum=0.0,
+            ),
+            bull_swing_account_name=os.getenv('BULL_SWING_ACCOUNT_NAME', '牛市短线模拟盘'),
+            bull_swing_initial_capital=parse_env_float(
+                os.getenv('BULL_SWING_INITIAL_CAPITAL'),
+                1_000_000.0,
+                field_name='BULL_SWING_INITIAL_CAPITAL',
+                minimum=10_000.0,
+            ),
+            bull_swing_max_positions=parse_env_int(
+                os.getenv('BULL_SWING_MAX_POSITIONS'), 5,
+                field_name='BULL_SWING_MAX_POSITIONS', minimum=1,
+            ),
+            bull_swing_risk_per_trade_pct=parse_env_float(
+                os.getenv('BULL_SWING_RISK_PER_TRADE_PCT'), 2.0,
+                field_name='BULL_SWING_RISK_PER_TRADE_PCT', minimum=0.1,
+            ),
+            bull_swing_max_candidates=parse_env_int(
+                os.getenv('BULL_SWING_MAX_CANDIDATES'), 6,
+                field_name='BULL_SWING_MAX_CANDIDATES', minimum=1,
+            ),
+            bull_swing_screen_pool_size=parse_env_int(
+                os.getenv('BULL_SWING_SCREEN_POOL_SIZE'), 40,
+                field_name='BULL_SWING_SCREEN_POOL_SIZE', minimum=5,
+            ),
+            bull_swing_deep_review_cmd=os.getenv('BULL_SWING_DEEP_REVIEW_CMD', ''),
+            bull_swing_deep_review_timeout=parse_env_int(
+                os.getenv('BULL_SWING_DEEP_REVIEW_TIMEOUT'), 1800,
+                field_name='BULL_SWING_DEEP_REVIEW_TIMEOUT', minimum=60,
             ),
             log_dir=os.getenv('LOG_DIR', './logs'),
             log_level=os.getenv('LOG_LEVEL', 'INFO'),
